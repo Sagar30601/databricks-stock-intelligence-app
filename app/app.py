@@ -7,8 +7,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import anthropic
-from pyspark.sql import SparkSession
-from pyspark.sql import functions as F
+from databricks import sql
+import os
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -29,11 +29,18 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── Spark Session ────────────────────────────────
-@st.cache_resource
-def get_spark():
-    return SparkSession.builder.getOrCreate()
-
-spark = get_spark()
+# ── Databricks SQL Connection ────────────────────
+# @st.cache_resource
+# def get_connection():
+#     return sql.connect(
+#         server_hostname = os.getenv("DATABRICKS_HOST"),
+#         http_path       = os.getenv("DATABRICKS_WAREHOUSE_PATH"),
+#         credentials_provider = lambda: oauth_machine_to_machine(
+#             host          = os.getenv("DATABRICKS_HOST"),
+#             client_id     = os.getenv("DATABRICKS_CLIENT_ID"),
+#             client_secret = os.getenv("DATABRICKS_CLIENT_SECRET")
+#         )
+#     )
 
 # ── Claude Client ────────────────────────────────
 @st.cache_resource
@@ -47,71 +54,168 @@ def get_claude():
 client = get_claude()
 
 # ── Data Loading Functions ───────────────────────
+# @st.cache_data(ttl=3600)
+# def load_daily_prices(ticker, start_date, end_date):
+#     return (
+#         spark.table("stock_analytics.gold.daily_prices")
+#             .filter(F.col("ticker")     == ticker)
+#             .filter(F.col("trade_date") >= start_date)
+#             .filter(F.col("trade_date") <= end_date)
+#             .orderBy("trade_date")
+#             .toPandas()
+#     )
+
+# @st.cache_data(ttl=3600)
+# def load_all_prices(start_date, end_date):
+#     return (
+#         spark.table("stock_analytics.gold.daily_prices")
+#             .filter(F.col("trade_date") >= start_date)
+#             .filter(F.col("trade_date") <= end_date)
+#             .orderBy("ticker", "trade_date")
+#             .toPandas()
+#     )
+
+# @st.cache_data(ttl=3600)
+# def load_volatility():
+#     return (
+#         spark.table("stock_analytics.gold.stock_volatility")
+#             .orderBy("volatility_stddev", ascending=False)
+#             .toPandas()
+#     )
+
+# @st.cache_data(ttl=3600)
+# def load_monthly(start_month):
+#     return (
+#         spark.table("stock_analytics.gold.monthly_performance")
+#             .filter(F.col("month") >= start_month)
+#             .orderBy("month", "rank")
+#             .toPandas()
+#     )
+
+# @st.cache_data(ttl=3600)
+# def build_ai_context():
+#     vol_summary = (
+#         spark.table("stock_analytics.gold.stock_volatility")
+#             .toPandas()
+#             .to_string(index=False)
+#     )
+#     monthly_summary = (
+#         spark.table("stock_analytics.gold.monthly_performance")
+#             .filter(F.col("month") >= "2024-01")
+#             .filter(F.col("rank")  <= 3)
+#             .orderBy("month", "rank")
+#             .toPandas()
+#             .to_string(index=False)
+#     )
+#     latest_prices = (
+#         spark.table("stock_analytics.gold.daily_prices")
+#             .groupBy("ticker")
+#             .agg(
+#                 F.max("trade_date")  .alias("latest_date"),
+#                 F.last("close")      .alias("latest_close"),
+#                 F.last("daily_return_pct").alias("latest_return")
+#             )
+#             .orderBy("ticker")
+#             .toPandas()
+#             .to_string(index=False)
+#     )
+#     return f"""
+
+@st.cache_resource
+def get_conn():
+    # These are auto-injected by Databricks Apps — no manual setup needed!
+    host          = os.environ["DATABRICKS_HOST"]
+    client_id     = os.environ["DATABRICKS_CLIENT_ID"]
+    client_secret = os.environ["DATABRICKS_CLIENT_SECRET"]
+
+    # Get warehouse HTTP path
+    http_path = "/sql/1.0/warehouses/c5119fd62b692e9b"  # ← fill this in
+
+    credentials = ClientCredentials(
+        host          = f"https://{host}",
+        client_id     = client_id,
+        client_secret = client_secret,
+        scopes        = ["all-apis"]
+    )
+
+    return sql.connect(
+        server_hostname      = host,
+        http_path            = http_path,
+        credentials_provider = lambda: credentials
+    )
+
+def run_query(query: str) -> pd.DataFrame:
+    conn   = get_conn()
+    cursor = conn.cursor()
+    cursor.execute(query)
+    cols = [d[0] for d in cursor.description]
+    rows = cursor.fetchall()
+    return pd.DataFrame(rows, columns=cols)
+
 @st.cache_data(ttl=3600)
 def load_daily_prices(ticker, start_date, end_date):
-    return (
-        spark.table("stock_analytics.gold.daily_prices")
-            .filter(F.col("ticker")     == ticker)
-            .filter(F.col("trade_date") >= start_date)
-            .filter(F.col("trade_date") <= end_date)
-            .orderBy("trade_date")
-            .toPandas()
-    )
+    return run_query(f"""
+        SELECT ticker, trade_date, open, high, low, close,
+               volume, daily_return_pct, price_range,
+               moving_avg_7d, moving_avg_30d
+        FROM stock_analytics.gold.daily_prices
+        WHERE ticker     = '{ticker}'
+          AND trade_date >= '{start_date}'
+          AND trade_date <= '{end_date}'
+        ORDER BY trade_date
+    """)
 
 @st.cache_data(ttl=3600)
 def load_all_prices(start_date, end_date):
-    return (
-        spark.table("stock_analytics.gold.daily_prices")
-            .filter(F.col("trade_date") >= start_date)
-            .filter(F.col("trade_date") <= end_date)
-            .orderBy("ticker", "trade_date")
-            .toPandas()
-    )
+    return run_query(f"""
+        SELECT ticker, trade_date, close, moving_avg_7d
+        FROM stock_analytics.gold.daily_prices
+        WHERE trade_date >= '{start_date}'
+          AND trade_date <= '{end_date}'
+        ORDER BY ticker, trade_date
+    """)
 
 @st.cache_data(ttl=3600)
 def load_volatility():
-    return (
-        spark.table("stock_analytics.gold.stock_volatility")
-            .orderBy("volatility_stddev", ascending=False)
-            .toPandas()
-    )
+    return run_query("""
+        SELECT ticker, volatility_stddev, avg_daily_return,
+               best_day_return, worst_day_return,
+               total_trading_days, risk_tier,
+               data_from, data_to
+        FROM stock_analytics.gold.stock_volatility
+        ORDER BY volatility_stddev DESC
+    """)
 
 @st.cache_data(ttl=3600)
 def load_monthly(start_month):
-    return (
-        spark.table("stock_analytics.gold.monthly_performance")
-            .filter(F.col("month") >= start_month)
-            .orderBy("month", "rank")
-            .toPandas()
-    )
+    return run_query(f"""
+        SELECT ticker, month, monthly_return_pct,
+               best_single_day, worst_single_day,
+               avg_close, trading_days, rank
+        FROM stock_analytics.gold.monthly_performance
+        WHERE month >= '{start_month}'
+        ORDER BY month, rank
+    """)
 
 @st.cache_data(ttl=3600)
 def build_ai_context():
-    vol_summary = (
-        spark.table("stock_analytics.gold.stock_volatility")
-            .toPandas()
-            .to_string(index=False)
-    )
-    monthly_summary = (
-        spark.table("stock_analytics.gold.monthly_performance")
-            .filter(F.col("month") >= "2024-01")
-            .filter(F.col("rank")  <= 3)
-            .orderBy("month", "rank")
-            .toPandas()
-            .to_string(index=False)
-    )
-    latest_prices = (
-        spark.table("stock_analytics.gold.daily_prices")
-            .groupBy("ticker")
-            .agg(
-                F.max("trade_date")  .alias("latest_date"),
-                F.last("close")      .alias("latest_close"),
-                F.last("daily_return_pct").alias("latest_return")
-            )
-            .orderBy("ticker")
-            .toPandas()
-            .to_string(index=False)
-    )
+    vol     = run_query("SELECT * FROM stock_analytics.gold.stock_volatility").to_string(index=False)
+    monthly = run_query("""
+        SELECT * FROM stock_analytics.gold.monthly_performance
+        WHERE month >= '2024-01' AND rank <= 3
+        ORDER BY month, rank
+    """).to_string(index=False)
+    latest  = run_query("""
+        SELECT ticker, MAX(trade_date) as latest_date,
+               LAST_VALUE(close) OVER (
+                   PARTITION BY ticker ORDER BY trade_date
+                   ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+               ) as latest_close
+        FROM stock_analytics.gold.daily_prices
+        GROUP BY ticker, close, trade_date
+        QUALIFY ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY trade_date DESC) = 1
+    """).to_string(index=False)
+
     return f"""
 You are a financial data analyst assistant with access to 
 S&P 500 stock market data from January 2023 to March 2026.

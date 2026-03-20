@@ -42,15 +42,22 @@ st.markdown("""
 #         )
 #     )
 
+
+# @st.cache_resource
+# def get_claude():
+#     api_key = dbutils.secrets.get(         # ← secure, never hardcoded
+#         scope = "app_secrets",
+#         key   = "claude_api_key"
+#     )
+#     return anthropic.Anthropic(api_key=api_key)
+
 # ── Claude Client ────────────────────────────────
+
 @st.cache_resource
 def get_claude():
-    api_key = dbutils.secrets.get(         # ← secure, never hardcoded
-        scope = "app_secrets",
-        key   = "claude_api_key"
-    )
+    api_key = os.environ["CLAUDE_API_KEY"]
     return anthropic.Anthropic(api_key=api_key)
-
+    
 client = get_claude()
 
 # ── Data Loading Functions ───────────────────────

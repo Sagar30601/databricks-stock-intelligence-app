@@ -55,9 +55,10 @@ st.markdown("""
 
 @st.cache_resource
 def get_claude():
-    api_key = os.environ["CLAUDE_API_KEY"]
+    # api_key = os.environ["CLAUDE_API_KEY"]
+    api_key = "............................................................."
     return anthropic.Anthropic(api_key=api_key)
-    
+
 client = get_claude()
 
 # ── Data Loading Functions ───────────────────────
@@ -128,27 +129,36 @@ client = get_claude()
 #     )
 #     return f"""
 
+# @st.cache_resource
+# def get_conn():
+#     # These are auto-injected by Databricks Apps — no manual setup needed!
+#     host          = os.environ["DATABRICKS_HOST"]
+#     client_id     = os.environ["DATABRICKS_CLIENT_ID"]
+#     client_secret = os.environ["DATABRICKS_CLIENT_SECRET"]
+
+#     # Get warehouse HTTP path
+#     http_path = "/sql/1.0/warehouses/c5119fd62b692e9b"  # ← fill this in
+
+#     credentials = ClientCredentials(
+#         host          = f"https://{host}",
+#         client_id     = client_id,
+#         client_secret = client_secret,
+#         scopes        = ["all-apis"]
+#     )
+
+#     return sql.connect(
+#         server_hostname      = host,
+#         http_path            = http_path,
+#         credentials_provider = lambda: credentials
+#     )
+
 @st.cache_resource
 def get_conn():
-    # These are auto-injected by Databricks Apps — no manual setup needed!
-    host          = os.environ["DATABRICKS_HOST"]
-    client_id     = os.environ["DATABRICKS_CLIENT_ID"]
-    client_secret = os.environ["DATABRICKS_CLIENT_SECRET"]
-
-    # Get warehouse HTTP path
-    http_path = "/sql/1.0/warehouses/c5119fd62b692e9b"  # ← fill this in
-
-    credentials = ClientCredentials(
-        host          = f"https://{host}",
-        client_id     = client_id,
-        client_secret = client_secret,
-        scopes        = ["all-apis"]
-    )
-
     return sql.connect(
-        server_hostname      = host,
-        http_path            = http_path,
-        credentials_provider = lambda: credentials
+        server_hostname = os.environ["DATABRICKS_HOST"],
+        http_path       = "/sql/1.0/warehouses/c5119fd62b692e9b",  # ← paste your actual warehouse ID
+        auth_type       = "databricks-oauth",
+        use_cloud_fetch = False
     )
 
 def run_query(query: str) -> pd.DataFrame:

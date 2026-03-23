@@ -5,11 +5,13 @@ An AI-powered stock market intelligence web app built entirely
 on Databricks Free Edition — combining live Delta table queries 
 with natural language Q&A powered by Claude API.
 
+
 # 🚀 Live Demo
 🔗 [Open App](https://stock-intelligence-app-7474654922627967.aws.databricksapps.com)
 > 💡 **To view the live app:** This runs on Databricks Free Edition which 
 > auto-sleeps to manage resources. Drop me a message on 
 > [LinkedIn](https://www.linkedin.com/in/sagar30601/) and I'll spin it up for you!
+
 
 ## 🏗️ Architecture
 ![Architecture](architecture/Dashboard1.PNG)

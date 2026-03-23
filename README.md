@@ -35,12 +35,6 @@ with natural language Q&A powered by Claude API.
 | `stock_volatility` | Stddev, risk tier per stock |
 | `monthly_performance` | Monthly return rankings |
 
-## 🚀 How to Run
-1. Run `notebooks/00_setup.py` — create UC catalog/schemas/tables
-2. Run `notebooks/01_data_loader.py` — fetch yfinance data → Delta
-3. Deploy `app/app.py` as a Databricks App
-4. Open the app URL — dashboard + AI Q&A ready ✅
-
 ## 🏅 Key Highlights
 - Zero infrastructure setup — runs 100% on Databricks Free Edition
 - Live Delta table queries — data refreshes daily

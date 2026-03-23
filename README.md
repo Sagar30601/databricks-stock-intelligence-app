@@ -6,7 +6,9 @@ on Databricks Free Edition — combining live Delta table queries
 with natural language Q&A powered by Claude API.
 
 ## 🏗️ Architecture
-![Architecture](architecture/app_architecture.png)
+![Architecture](architecture/Dashboard1.PNG)
+![Architecture](architecture/Dashboard2.PNG)
+![Architecture](architecture/Dashboard3.PNG)
 
 ## 🛠️ Tech Stack
 | Tool | Usage |

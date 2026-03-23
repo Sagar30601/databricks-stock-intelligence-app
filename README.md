@@ -9,6 +9,7 @@ with natural language Q&A powered by Claude API.
 ![Architecture](architecture/Dashboard1.PNG)
 ![Architecture](architecture/Dashboard2.PNG)
 ![Architecture](architecture/Dashboard3.PNG)
+![Architecture](architecture/Dashboard4.PNG)
 
 ## 🛠️ Tech Stack
 | Tool | Usage |

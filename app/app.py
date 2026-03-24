@@ -22,16 +22,27 @@ st.set_page_config(
 # ── Custom CSS ───────────────────────────────────
 st.markdown("""
     <style>
-    /* ── MSCI Theme ──────────────────────────── */
-    .stApp { background-color: #F5F5F5; }
+    /* ── Hide Streamlit default UI elements ─── */
+    #MainMenu { visibility: hidden !important; }
+    header[data-testid="stHeader"] { display: none !important; }
+    footer { display: none !important; }
+    [data-testid="stToolbar"] { display: none !important; }
+    .stDeployButton { display: none !important; }
+    [data-testid="manage-app-button"] { display: none !important; }
 
+    /* ── Remove top padding ─────────────────── */
+    .stApp { 
+        background-color: #F5F5F5;
+        margin-top: 0 !important;
+    }
     .main .block-container {
         background-color: #FFFFFF;
         padding: 0.5rem 1.5rem 1rem 1.5rem !important;
         max-width: 100% !important;
+        margin-top: 0 !important;
     }
 
-    /* Sidebar — compact, no scroll */
+    /* ── Sidebar ────────────────────────────── */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #003366 0%, #004080 100%);
         min-width: 220px !important;
@@ -44,22 +55,28 @@ st.markdown("""
     [data-testid="stSidebar"] * { color: #FFFFFF !important; }
     [data-testid="stSidebar"] hr {
         border-color: rgba(255,255,255,0.2) !important;
-        margin: 0.4rem 0 !important;
+        margin: 0.3rem 0 !important;
     }
 
     /* Fix dropdown text visibility */
     [data-testid="stSidebar"] [data-baseweb="select"] [data-baseweb="tag"],
     [data-testid="stSidebar"] [data-baseweb="select"] div,
     [data-testid="stSidebar"] [data-baseweb="select"] span,
-    [data-testid="stSidebar"] [data-baseweb="select"] input {
-        color: #1A1A1A !important;
-        background-color: #FFFFFF !important;
-    }
-
-    /* Fix date input text */
+    [data-testid="stSidebar"] [data-baseweb="select"] input,
     [data-testid="stSidebar"] input {
         color: #1A1A1A !important;
         background-color: #FFFFFF !important;
+        font-size: 12px !important;
+    }
+
+    /* Date inputs compact */
+    [data-testid="stSidebar"] .stDateInput input {
+        font-size: 11px !important;
+        padding: 3px 5px !important;
+    }
+    [data-testid="stSidebar"] .stDateInput,
+    [data-testid="stSidebar"] .stSelectbox { 
+        margin-bottom: 0 !important; 
     }
 
     /* Sidebar buttons */
@@ -68,27 +85,26 @@ st.markdown("""
         color: #FFFFFF !important;
         border: 1px solid rgba(255,255,255,0.3) !important;
         border-radius: 4px !important;
-        padding: 0.2rem 0.5rem !important;
-        font-size: 12px !important;
-        width: 100%;
+        padding: 0.2rem !important;
+        font-size: 11px !important;
+        width: 100% !important;
     }
     [data-testid="stSidebar"] .stButton button:hover {
         background-color: #CC0000 !important;
         border-color: #CC0000 !important;
     }
 
-    /* Reduce sidebar spacing */
-    [data-testid="stSidebar"] .stSelectbox,
-    [data-testid="stSidebar"] .stDateInput { margin-bottom: 0 !important; }
-    [data-testid="stSidebar"] [data-testid="column"] { gap: 4px !important; }
+    /* Remove sidebar scrollbar */
+    [data-testid="stSidebar"] ::-webkit-scrollbar { display: none !important; }
+    [data-testid="stSidebar"] { overflow: hidden !important; }
 
-    /* KPI Cards */
+    /* ── KPI Cards ──────────────────────────── */
     [data-testid="metric-container"] {
         background: #FFFFFF;
         border: 1px solid #E0E0E0;
         border-top: 3px solid #003366;
         border-radius: 6px;
-        padding: 0.5rem 0.75rem !important;
+        padding: 0.4rem 0.6rem !important;
     }
     [data-testid="metric-container"] label {
         color: #666 !important;
@@ -99,23 +115,23 @@ st.markdown("""
     [data-testid="metric-container"] [data-testid="stMetricValue"] {
         color: #003366 !important;
         font-weight: 700 !important;
-        font-size: 1.2rem !important;
+        font-size: 1.1rem !important;
     }
     [data-testid="metric-container"] [data-testid="stMetricDelta"] {
-        font-size: 11px !important;
+        font-size: 10px !important;
     }
 
-    /* Tabs */
+    /* ── Tabs ───────────────────────────────── */
     .stTabs [data-baseweb="tab-list"] {
         border-bottom: 2px solid #003366;
         gap: 0;
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.25rem !important;
     }
     .stTabs [data-baseweb="tab"] {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
         color: #666;
-        padding: 0.5rem 1.25rem;
+        padding: 0.4rem 1.25rem;
         border-radius: 0;
     }
     .stTabs [aria-selected="true"] {
@@ -124,22 +140,128 @@ st.markdown("""
         background: transparent !important;
     }
 
-    /* Headings */
-    h1 { color: #003366 !important; font-weight: 700 !important; 
-         font-size: 1.6rem !important; margin-bottom: 0 !important; }
-    h2, h3 { color: #003366 !important; font-weight: 600 !important;
-              font-size: 1rem !important; margin: 0.5rem 0 !important; }
-    hr { border-color: #E0E0E0 !important; margin: 0.5rem 0 !important; }
-
-    /* Remove extra padding everywhere */
-    .block-container { padding-top: 0.5rem !important; }
-    [data-testid="stVerticalBlock"] { gap: 0.5rem !important; }
-
-    # In sidebar CSS add:
-    [data-testid="stSidebar"] .stDateInput input {
-        font-size: 11px !important;
-        padding: 4px 6px !important;
+    /* ── Typography ─────────────────────────── */
+    h1 { 
+        color: #003366 !important; 
+        font-weight: 700 !important;
+        font-size: 1.4rem !important; 
+        margin: 0 !important; 
+        padding: 0 !important;
     }
+    h2, h3, h4 { 
+        color: #003366 !important; 
+        font-weight: 600 !important;
+        font-size: 0.95rem !important; 
+        margin: 0.25rem 0 !important; 
+    }
+    hr { 
+        border-color: #E0E0E0 !important; 
+        margin: 0.3rem 0 !important; 
+    }
+
+        /* ── Sidebar overrides ──────────────────────── */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #002855 0%, #003f7f 100%);
+        min-width: 240px !important;
+        max-width: 240px !important;
+    }
+    [data-testid="stSidebar"] > div:first-child {
+        padding: 1rem !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+    [data-testid="stSidebar"] * { color: white !important; }
+
+    /* Selectbox */
+    [data-testid="stSidebar"] [data-baseweb="select"] > div {
+        background: white !important;
+        border-radius: 6px !important;
+        border: none !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="select"] span,
+    [data-testid="stSidebar"] [data-baseweb="select"] div,
+    [data-testid="stSidebar"] [data-baseweb="select"] input {
+        color: #1a1a1a !important;
+        font-size: 13px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* Date inputs */
+    [data-testid="stSidebar"] [data-baseweb="input"] {
+        background: white !important;
+        border-radius: 6px !important;
+        border: none !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="input"] input {
+        color: #1a1a1a !important;
+        font-size: 12px !important;
+        padding: 6px 8px !important;
+        background: white !important;
+    }
+
+    /* Quick select buttons — fix YTD wrapping */
+    [data-testid="stSidebar"] .stButton > button {
+        background: rgba(255,255,255,0.12) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.25) !important;
+        border-radius: 6px !important;
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        padding: 4px 2px !important;
+        white-space: nowrap !important;
+        width: 100% !important;
+        letter-spacing: 0 !important;
+    }
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background: #CC0000 !important;
+        border-color: #CC0000 !important;
+    }
+
+    /* Remove gaps */
+    [data-testid="stSidebar"] .stSelectbox { margin-bottom: 6px !important; }
+    [data-testid="stSidebar"] .stDateInput  { margin-bottom: 0 !important; }
+    [data-testid="stSidebar"] [data-testid="column"] { padding: 0 2px !important; }
+    [data-testid="stSidebar"] ::-webkit-scrollbar { width: 0 !important; }
+
+    /* Date inputs full width */
+    [data-testid="stSidebar"] [data-baseweb="input"] {
+        background: white !important;
+        border-radius: 6px !important;
+        border: none !important;
+        width: 100% !important;
+    }
+    [data-testid="stSidebar"] [data-baseweb="input"] input {
+        color: #1a1a1a !important;
+        font-size: 12px !important;
+        padding: 6px 10px !important;
+        width: 100% !important;
+    }
+    [data-testid="stSidebar"] .stDateInput {
+        width: 100% !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Reduce gaps in sidebar */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] > div {
+        gap: 0 !important;
+        margin: 0 !important;
+    }
+    [data-testid="stSidebar"] .element-container {
+        margin-bottom: 4px !important;
+    }
+
+    [data-testid="stSidebar"] .stDateInput {
+    margin-top: 0 !important;
+    margin-bottom: 4px !important;
+    }
+
+    /* ── Remove extra spacing ───────────────── */
+    .block-container { padding-top: 0.5rem !important; }
+    [data-testid="stVerticalBlock"] { gap: 0.4rem !important; }
+    [data-testid="stVerticalBlockBorderWrapper"] { gap: 0 !important; }
+    div[data-testid="stVerticalBlock"] > div { padding: 0 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -159,7 +281,7 @@ client = get_claude()
 def get_conn():
     return sql.connect(
         server_hostname = "",
-        http_path       = "/sql/1.0/warehouses/",
+        http_path       = "",
         access_token    = ""
         # auth_type       = "databricks-oauth",
         # use_cloud_fetch = False
@@ -288,80 +410,111 @@ st.divider()
 # SIDEBAR
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 with st.sidebar:
-    # ── MSCI Logo area ──────────────────────────
-    st.markdown("""
-        <div style='text-align:center; padding:0.5rem 0 0.25rem 0;'>
-            <div style='font-size:20px; font-weight:800; 
-                        letter-spacing:2px; color:white; white-space:nowrap;'>
-                📊 STOCK IQ
-            </div>
-            <div style='font-size:9px; color:rgba(255,255,255,0.6);
-                        letter-spacing:1px; margin-top:2px;'>
-                MARKET INTELLIGENCE PLATFORM
+    # Logo
+    st.markdown(f"""
+        <div style="padding:0 0 12px 0; border-bottom:1px solid rgba(255,255,255,0.15);">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div style="background:#CC0000; width:36px; height:36px; border-radius:8px;
+                            display:flex; align-items:center; justify-content:center;
+                            font-size:18px; flex-shrink:0;">📈</div>
+                <div>
+                    <div style="font-size:16px; font-weight:800; letter-spacing:1px; line-height:1.1;">STOCK IQ</div>
+                    <div style="font-size:9px; opacity:0.5; letter-spacing:1px;">MARKET INTELLIGENCE</div>
+                </div>
             </div>
         </div>
+
+        <div style="margin:14px 0 6px 0; font-size:10px; font-weight:700;
+                    letter-spacing:1.5px; opacity:0.5;">EQUITY</div>
     """, unsafe_allow_html=True)
 
-    # ── Stock Selector ───────────────────────────
-    st.markdown("<p style='font-size:11px; color:rgba(255,255,255,0.6); letter-spacing:1px; margin-bottom:4px;'>SELECT STOCK</p>", unsafe_allow_html=True)
+    # Stock dropdown
+    ticker_options = ["AAPL","MSFT","GOOGL","AMZN","NVDA","META","TSLA","BRK-B","JPM","V"]
+    company_map    = {
+        "AAPL":"Apple","MSFT":"Microsoft","GOOGL":"Alphabet",
+        "AMZN":"Amazon","NVDA":"NVIDIA","META":"Meta",
+        "TSLA":"Tesla","BRK-B":"Berkshire","JPM":"JPMorgan","V":"Visa"
+    }
+    sector_map = {
+        "AAPL":"Technology","MSFT":"Technology","GOOGL":"Technology",
+        "AMZN":"Consumer","NVDA":"Semiconductors","META":"Technology",
+        "TSLA":"Automotive","BRK-B":"Financials","JPM":"Financials","V":"Financials"
+    }
+
     selected_ticker = st.selectbox(
-        label   = "",
-        options = ["AAPL","MSFT","GOOGL","AMZN",
-                   "NVDA","META","TSLA","BRK-B","JPM","V"],
-        index   = 0
+        label       = "",
+        options     = ticker_options,
+        format_func = lambda x: f"{x}  ·  {company_map[x]}",
+        index       = 0
     )
 
-    # ── Company info pill ────────────────────────
-    company_names = {
-        "AAPL":"Apple Inc.", "MSFT":"Microsoft Corp.",
-        "GOOGL":"Alphabet Inc.", "AMZN":"Amazon.com Inc.",
-        "NVDA":"NVIDIA Corp.", "META":"Meta Platforms",
-        "TSLA":"Tesla Inc.", "BRK-B":"Berkshire Hathaway",
-        "JPM":"JPMorgan Chase", "V":"Visa Inc."
-    }
-    st.markdown(f"""
-        <div style='background:rgba(255,255,255,0.1); border-radius:4px;
-                    padding:6px 10px; margin-bottom:16px; font-size:12px;
-                    color:rgba(255,255,255,0.8);'>
-            🏢 {company_names.get(selected_ticker, "")}
+    # Company card
+    st.markdown("""
+        <div style="border-top:1px solid rgba(255,255,255,0.15);
+                    padding-top:12px; margin-bottom:10px;">
+            <div style="font-size:10px; font-weight:700;
+                        letter-spacing:1.5px; opacity:0.5; margin-bottom:10px;">
+                DATE RANGE
+            </div>
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("<hr style='border-color:rgba(255,255,255,0.15);'>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:10px; font-weight:600; color:rgba(255,255,255,0.7); margin:0 0 4px 0;'>FROM</div>",
+            unsafe_allow_html=True)
+    start_date = st.date_input("_s", value=pd.to_datetime("2024-01-01"),
+                            label_visibility="collapsed")
 
-    # ── Date Range ───────────────────────────────
-    st.markdown("<p style='font-size:11px; color:rgba(255,255,255,0.6); letter-spacing:1px; margin-bottom:4px;'>DATE RANGE</p>", unsafe_allow_html=True)
-
-    col1, col2 = st.columns(2)
-    with col1:
-        start_date = st.date_input("From", value=pd.to_datetime("2024-01-01"), label_visibility="collapsed")
-    with col2:
-        end_date   = st.date_input("To",   value=pd.Timestamp.today(), label_visibility="collapsed")  # ← today!
+    st.markdown("<div style='font-size:10px; font-weight:600; color:rgba(255,255,255,0.7); margin:10px 0 4px 0;'>TO</div>",
+            unsafe_allow_html=True)
+    end_date = st.date_input("_e", value=pd.Timestamp.today(),
+                            label_visibility="collapsed")
 
     start_date  = str(start_date)
     end_date    = str(end_date)
     start_month = start_date[:7]
 
-    # ── Quick Select ─────────────────────────────
-    st.markdown("<p style='font-size:11px; color:rgba(255,255,255,0.6); letter-spacing:1px; margin:12px 0 6px 0;'>QUICK SELECT</p>", unsafe_allow_html=True)
+    # Quick select — 4 equal buttons in one row
+    st.markdown("""
+        <div style="font-size:10px; font-weight:700; letter-spacing:1.5px;
+                    opacity:0.5; margin:14px 0 6px;">QUICK SELECT</div>
+    """, unsafe_allow_html=True)
 
-    c1, c2 = st.columns(2)
-    if c1.button("1Y",  use_container_width=True): start_date = str(pd.Timestamp.today() - pd.DateOffset(years=1))[:10]
-    if c2.button("2Y",  use_container_width=True): start_date = str(pd.Timestamp.today() - pd.DateOffset(years=2))[:10]
-    if c1.button("YTD", use_container_width=True): start_date = str(pd.Timestamp.today().replace(month=1, day=1))[:10]
-    if c2.button("All", use_container_width=True): start_date = "2023-01-01"
+    b1, b2 = st.columns(2)
+    b3, b4 = st.columns(2)
+    if b1.button("1Y",  use_container_width=True):
+        start_date = str(pd.Timestamp.today() - pd.DateOffset(years=1))[:10]
+    if b2.button("2Y",  use_container_width=True):
+        start_date = str(pd.Timestamp.today() - pd.DateOffset(years=2))[:10]
+    if b3.button("YTD", use_container_width=True):
+        start_date = str(pd.Timestamp.today().replace(month=1, day=1))[:10]
+    if b4.button("All", use_container_width=True):
+        start_date = "2023-01-01"
 
-    st.markdown("<hr style='border-color:rgba(255,255,255,0.15);'>", unsafe_allow_html=True)
-
-    # ── Footer ───────────────────────────────────
+    # Footer
     st.markdown(f"""
-        <div style='font-size:11px; color:rgba(255,255,255,0.5); line-height:1.8;'>
+        <div style="border-top:1px solid rgba(255,255,255,0.15);
+                    margin-top:20px; padding-top:12px;
+                    font-size:10px; opacity:0.4; line-height:2;">
             🔄 Cache refreshes every hour<br>
             ⚡ Databricks Free Edition<br>
-            🤖 AI powered by Claude<br>
-            📅 Today: {pd.Timestamp.today().strftime('%b %d, %Y')}
+            🤖 Claude AI<br>
+            <span style="opacity:1.5; font-weight:700; font-size:11px;">
+                📅 {pd.Timestamp.today().strftime('%b %d, %Y')}
+            </span>
         </div>
     """, unsafe_allow_html=True)
+# ```
+# ---
+
+## Key Improvements
+# ```
+# ✅ Logo horizontal (icon + text side by side) — compact
+# ✅ Dropdown shows "AAPL — Apple Inc." format
+# ✅ Company card shows name + sector
+# ✅ FROM/TO labels above each date input
+# ✅ Quick select in 4 columns (1Y 2Y YTD All) — one row
+# ✅ Footer compact at bottom
+# ✅ Consistent spacing with dividers
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TABS

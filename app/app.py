@@ -6,7 +6,8 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import anthropic
+# import anthropic
+from groq import Groq
 from databricks import sql
 import os
 import warnings
@@ -267,22 +268,19 @@ st.markdown("""
 
 # ── Claude Client ────────────────────────────────
 @st.cache_resource
-def get_claude():
-    api_key = os.environ.get("CLAUDE_API_KEY")
-    if not api_key:
-        st.error("❌ CLAUDE_API_KEY not configured")
-        st.stop()
-    return anthropic.Anthropic(api_key=api_key)
+def get_groq():
+    api_key = os.environ.get("GROQ_KEY")  
+    return Groq(api_key=api_key)
 
-client = get_claude()
+client = get_groq()
 
 # ── Databricks SQL Connection ────────────────────
 @st.cache_resource
 def get_conn():
     return sql.connect(
-        server_hostname = "",
-        http_path       = "",
-        access_token    = ""
+        server_hostname = "dbc-fc5d7400-6f13.cloud.databricks.com",
+        http_path       = f"/sql/1.0/warehouses/{os.environ.get('WAREHOUSE_ID')}",
+        access_token    = os.environ.get("PAT")
         # auth_type       = "databricks-oauth",
         # use_cloud_fetch = False
     )
@@ -667,9 +665,9 @@ with tab1:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 with tab2:
     st.subheader("🤖 Ask AI About Your Stock Data")
-    st.caption("Claude has access to all Gold table data — ask anything!")
+    st.caption("Llama AI has access to all Gold table data — ask anything!")
 
-    with st.spinner("Loading data context for AI..."):
+    with st.spinner("Llama is analysing the data..."):
         context = build_ai_context()
 
     if "messages" not in st.session_state:
@@ -702,14 +700,16 @@ with tab2:
         with st.chat_message("assistant"):
             with st.spinner("Claude is analysing the data..."):
                 try:
-                    response = client.messages.create(
-                        model      = "claude-sonnet-4-20250514",
-                        max_tokens = 1024,
-                        system     = context,
-                        messages   = [{"role":m["role"],"content":m["content"]}
-                                      for m in st.session_state.messages]
+                    response = client.chat.completions.create(
+                        model    = "llama-3.1-8b-instant",   # free, very fast
+                        messages = [
+                            {"role": "system", "content": context},
+                            *[{"role": m["role"], "content": m["content"]}
+                            for m in st.session_state.messages]
+                        ],
+                        max_tokens = 1024
                     )
-                    answer = response.content[0].text
+                    answer = response.choices[0].message.content
                     st.markdown(answer)
                     st.session_state.messages.append({"role":"assistant","content":answer})
                 except Exception as e:

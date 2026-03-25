@@ -1,1 +1,11 @@
 command: ["streamlit", "run", "app.py", "--server.port", "8000"]
+
+env:
+  - name: WAREHOUSE_ID
+    valueFrom: sql-warehouse
+
+  - name: GROQ_KEY
+    valueFrom: GROQ_API_KEY
+
+  - name: PAT
+    valueFrom: SAGAR_PAT

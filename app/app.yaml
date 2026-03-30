@@ -1,4 +1,5 @@
-command: ["streamlit", "run", "app.py", "--server.port", "8000"]
+# command: ["streamlit", "run", "app.py", "--server.port", "8000"]
+command: ["bash", "start.sh"]
 
 env:
   - name: WAREHOUSE_ID
@@ -9,3 +10,9 @@ env:
 
   - name: PAT
     valueFrom: SAGAR_PAT
+
+  - name: DATABRICKS_HOST
+    value: https://dbc-fc5d7400-6f13.cloud.databricks.com/
+
+  - name: ANTHROPIC_API_KEY
+    valueFrom: CLAUDE_API_KEY

@@ -11,6 +11,8 @@ from groq import Groq
 from databricks import sql
 import os
 import warnings
+from agent.agent import stream_response
+from agent.utils import format_stream
 warnings.filterwarnings("ignore")
 
 # ── Page Config ─────────────────────────────────
@@ -517,7 +519,7 @@ with st.sidebar:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TABS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-tab1, tab2 = st.tabs(["📊 Dashboard", "🤖 Ask AI"])
+tab1, tab2, tab3 = st.tabs(["📊 Dashboard", "🤖 Ask AI", "🤖 AI Agent (MCP)"])
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TAB 1 — DASHBOARD
@@ -720,3 +722,50 @@ with tab2:
         if st.button("🗑️ Clear conversation"):
             st.session_state.messages = []
             st.rerun()
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TAB 3 — 🤖 AI Agent (MCP)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+with tab3:
+    st.subheader("🤖 Databricks AI Agent - MCP")
+    st.caption("Claude AI has access to all Gold table data — ask anything!")
+
+    try:
+        res = requests.get("http://localhost:8001", timeout=2)
+        st.success("MCP Server Running ✅")
+    except:
+        st.error("MCP Server Not Running ❌")
+
+    # Chat history
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display history
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
+    # User input
+    if prompt := st.chat_input("Ask about your stock data..."):
+
+        # Save user message
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Assistant response (streaming)
+        with st.chat_message("assistant"):
+            response_placeholder = st.empty()
+            full_response = ""
+
+            for chunk in stream_response(prompt):
+                full_response += chunk
+                response_placeholder.markdown(format_stream(full_response))
+
+        # Save response
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": full_response
+        })

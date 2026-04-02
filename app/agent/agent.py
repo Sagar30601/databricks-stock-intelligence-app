@@ -1,6 +1,7 @@
 from anthropic import Anthropic
 import os
 from mcp_server.tools import run_sql, best_month, list_tables, describe_table
+# from mcp.client import Client
 
 anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 

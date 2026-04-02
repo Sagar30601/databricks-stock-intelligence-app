@@ -1,4 +1,4 @@
-from mcp import Server
+from mcp.server import Server
 from tools import run_sql, best_month, list_tables, describe_table
 
 server = Server("databricks-mcp-agent")
